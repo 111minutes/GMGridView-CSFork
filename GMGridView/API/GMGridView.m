@@ -50,6 +50,9 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     UIPanGestureRecognizer       *_sortingPanGesture;
     UILongPressGestureRecognizer *_sortingLongPressGesture;
     
+    UILongPressGestureRecognizer *_editingModeLongPressGesture;
+    
+    
     // Moving gestures
     UIPinchGestureRecognizer     *_pinchGesture;
     UITapGestureRecognizer       *_tapGesture;
@@ -177,31 +180,38 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
         
         /////////////////////////////
         // Transformation gestures :
-        _pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGestureUpdated:)];
-        _pinchGesture.delegate = self;
-        [self addGestureRecognizer:_pinchGesture];
+//        _pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGestureUpdated:)];
+//        _pinchGesture.delegate = self;
+//        [self addGestureRecognizer:_pinchGesture];
         
-        _rotationGesture = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotationGestureUpdated:)];
-        _rotationGesture.delegate = self;
-        [self addGestureRecognizer:_rotationGesture];
+//        _rotationGesture = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotationGestureUpdated:)];
+//        _rotationGesture.delegate = self;
+//        [self addGestureRecognizer:_rotationGesture];
         
-        _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureUpdated:)];
-        _panGesture.delegate = self;
-        [_panGesture setMaximumNumberOfTouches:2];
-        [_panGesture setMinimumNumberOfTouches:2];
-        [self addGestureRecognizer:_panGesture];
+//        _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureUpdated:)];
+//        _panGesture.delegate = self;
+//        [_panGesture setMaximumNumberOfTouches:2];
+//        [_panGesture setMinimumNumberOfTouches:2];
+//        [self addGestureRecognizer:_panGesture];
         
         //////////////////////
         // Sorting gestures :
         
-        _sortingPanGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(sortingPanGestureUpdated:)];
-        _sortingPanGesture.delegate = self;
-        [_scrollView addGestureRecognizer:_sortingPanGesture];
+//        _sortingPanGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(sortingPanGestureUpdated:)];
+//        _sortingPanGesture.delegate = self;
+//        [_scrollView addGestureRecognizer:_sortingPanGesture];
         
-        _sortingLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(sortingLongPressGestureUpdated:)];
+//        _sortingLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(sortingLongPressGestureUpdated:)];
+//        _sortingLongPressGesture.numberOfTouchesRequired = 1;
+//        _sortingLongPressGesture.delegate = self;
+//        [_scrollView addGestureRecognizer:_sortingLongPressGesture];
+        
+        _editingModeLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self 
+                                                                                     action:@selector(editingModeLongPressGestureUpdated:)];
         _sortingLongPressGesture.numberOfTouchesRequired = 1;
         _sortingLongPressGesture.delegate = self;
-        [_scrollView addGestureRecognizer:_sortingLongPressGesture];
+        [_scrollView addGestureRecognizer:_editingModeLongPressGesture];
+
 
         ////////////////////////
         // Gesture dependencies
@@ -220,8 +230,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
                 }
             }
         }
-        [panGestureRecognizer setMaximumNumberOfTouches:1];
-        [panGestureRecognizer requireGestureRecognizerToFail:_sortingPanGesture];
+        
 
         self.layoutStrategy = [GMGridViewLayoutStrategyFactory strategyFromType:GMGridViewLayoutVertical];
         
@@ -413,7 +422,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     }
     else if (gestureRecognizer == _sortingLongPressGesture)
     {
-        valid = !isScrolling && !self.isEditing && (self.sortingDelegate != nil);
+        valid = !isScrolling && (self.sortingDelegate != nil);
     }
     else if (gestureRecognizer == _sortingPanGesture) 
     {
@@ -482,6 +491,22 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
             break;
     }
 }
+
+- (void)editingModeLongPressGestureUpdated:(UILongPressGestureRecognizer *)longPressGesture
+{
+    switch (longPressGesture.state) 
+    {
+        case UIGestureRecognizerStateBegan:
+            [self setEditing:!self.editing];
+            break;
+        case UIGestureRecognizerStateEnded: 
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateFailed:
+        default:
+            break;
+    }
+}
+
 
 - (void)sortingPanGestureUpdated:(UIPanGestureRecognizer *)panGesture
 {
