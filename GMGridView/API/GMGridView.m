@@ -56,6 +56,8 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     // Moving gestures
     UIPinchGestureRecognizer     *_pinchGesture;
     UITapGestureRecognizer       *_tapGesture;
+    UITapGestureRecognizer       *_tapGestureEndEditing;
+    
     UIRotationGestureRecognizer  *_rotationGesture;
     UIPanGestureRecognizer       *_panGesture;
     
@@ -86,6 +88,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 @property (atomic) NSInteger lastPositionLoaded;
 
 
+
 // Gestures
 - (void)sortingPanGestureUpdated:(UIPanGestureRecognizer *)panGesture;
 - (void)sortingLongPressGestureUpdated:(UILongPressGestureRecognizer *)longPressGesture;
@@ -93,6 +96,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 - (void)panGestureUpdated:(UIPanGestureRecognizer *)panGesture;
 - (void)pinchGestureUpdated:(UIPinchGestureRecognizer *)pinchGesture;
 - (void)rotationGestureUpdated:(UIRotationGestureRecognizer *)rotationGesture;
+- (void)tapGestureEndEditingUpdated:(UITapGestureRecognizer *)tapGesture;
 
 // Sorting movement control
 - (void)sortingMoveDidStartAtPoint:(CGPoint)point;
@@ -152,7 +156,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 
 @synthesize firstPositionLoaded = _firstPositionLoaded;
 @synthesize lastPositionLoaded = _lastPositionLoaded;
-
+@synthesize inEditingMode;
 //////////////////////////////////////////////////////////////
 #pragma mark Constructors and destructor
 //////////////////////////////////////////////////////////////
@@ -178,41 +182,47 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
         _tapGesture.numberOfTouchesRequired = 1;
         [_scrollView addGestureRecognizer:_tapGesture];
         
+        _tapGestureEndEditing= [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapGestureEndEditingUpdated:)];
+        _tapGestureEndEditing.delegate = self;
+        _tapGestureEndEditing.numberOfTapsRequired = 1;
+        _tapGestureEndEditing.numberOfTouchesRequired = 1;
+        [_scrollView addGestureRecognizer:_tapGestureEndEditing];
+        
         /////////////////////////////
         // Transformation gestures :
-//        _pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGestureUpdated:)];
-//        _pinchGesture.delegate = self;
-//        [self addGestureRecognizer:_pinchGesture];
+        //        _pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGestureUpdated:)];
+        //        _pinchGesture.delegate = self;
+        //        [self addGestureRecognizer:_pinchGesture];
         
-//        _rotationGesture = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotationGestureUpdated:)];
-//        _rotationGesture.delegate = self;
-//        [self addGestureRecognizer:_rotationGesture];
+        //        _rotationGesture = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotationGestureUpdated:)];
+        //        _rotationGesture.delegate = self;
+        //        [self addGestureRecognizer:_rotationGesture];
         
-//        _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureUpdated:)];
-//        _panGesture.delegate = self;
-//        [_panGesture setMaximumNumberOfTouches:2];
-//        [_panGesture setMinimumNumberOfTouches:2];
-//        [self addGestureRecognizer:_panGesture];
+        //        _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureUpdated:)];
+        //        _panGesture.delegate = self;
+        //        [_panGesture setMaximumNumberOfTouches:2];
+        //        [_panGesture setMinimumNumberOfTouches:2];
+        //        [self addGestureRecognizer:_panGesture];
         
         //////////////////////
         // Sorting gestures :
         
-//        _sortingPanGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(sortingPanGestureUpdated:)];
-//        _sortingPanGesture.delegate = self;
-//        [_scrollView addGestureRecognizer:_sortingPanGesture];
+        //        _sortingPanGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(sortingPanGestureUpdated:)];
+        //        _sortingPanGesture.delegate = self;
+        //        [_scrollView addGestureRecognizer:_sortingPanGesture];
         
-//        _sortingLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(sortingLongPressGestureUpdated:)];
-//        _sortingLongPressGesture.numberOfTouchesRequired = 1;
-//        _sortingLongPressGesture.delegate = self;
-//        [_scrollView addGestureRecognizer:_sortingLongPressGesture];
+        //        _sortingLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(sortingLongPressGestureUpdated:)];
+        //        _sortingLongPressGesture.numberOfTouchesRequired = 1;
+        //        _sortingLongPressGesture.delegate = self;
+        //        [_scrollView addGestureRecognizer:_sortingLongPressGesture];
         
         _editingModeLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self 
                                                                                      action:@selector(editingModeLongPressGestureUpdated:)];
         _sortingLongPressGesture.numberOfTouchesRequired = 1;
         _sortingLongPressGesture.delegate = self;
         [_scrollView addGestureRecognizer:_editingModeLongPressGesture];
-
-
+        
+        
         ////////////////////////
         // Gesture dependencies
         UIPanGestureRecognizer *panGestureRecognizer = nil;
@@ -231,7 +241,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
             }
         }
         
-
+        
         self.layoutStrategy = [GMGridViewLayoutStrategyFactory strategyFromType:GMGridViewLayoutVertical];
         
         self.mainSuperView = self;
@@ -369,26 +379,33 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
         
         _editing = editing;
     }
+    
+    if (YES == editing) {
+        self.inEditingMode = [NSNumber numberWithInt:1];
+    }
+    else {
+        [self performSelector:@selector(setInEditingMode:) withObject:[NSNumber numberWithInt:0] afterDelay:0.5];
+    }
 }
 
 - (void)setShowsVerticalScrollIndicator:(BOOL)showsVerticalScroll 
 {
-  _scrollView.showsVerticalScrollIndicator = showsVerticalScroll;
+    _scrollView.showsVerticalScrollIndicator = showsVerticalScroll;
 }
 
 - (BOOL)showsVerticalScrollIndicator 
 {
-  return _scrollView.showsVerticalScrollIndicator;
+    return _scrollView.showsVerticalScrollIndicator;
 }
 
 - (void)setShowsHorizontalScrollIndicator:(BOOL)showsHorizontalScrollIndicator 
 {
-  _scrollView.showsHorizontalScrollIndicator = showsHorizontalScrollIndicator;
+    _scrollView.showsHorizontalScrollIndicator = showsHorizontalScrollIndicator;
 }
 
 - (BOOL)showsHorizontalScrollIndicator 
 {
-  return _scrollView.showsHorizontalScrollIndicator;
+    return _scrollView.showsHorizontalScrollIndicator;
 }
 
 
@@ -419,6 +436,10 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     {
         CGPoint locationTouch = [_tapGesture locationInView:_scrollView];
         valid = !isScrolling && !self.isEditing && [self.layoutStrategy itemPositionFromLocation:locationTouch] != GMGV_INVALID_POSITION;
+    }
+    else if (gestureRecognizer == _tapGestureEndEditing) {
+        CGPoint locationTouch = [_tapGesture locationInView:_scrollView];
+        valid = !isScrolling && self.isEditing && GMGV_INVALID_POSITION == [self.layoutStrategy itemPositionFromLocation:locationTouch];
     }
     else if (gestureRecognizer == _sortingLongPressGesture)
     {
@@ -531,7 +552,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
             CGPoint translation = [panGesture translationInView:_scrollView];
             CGPoint offset = translation;
             CGPoint locationInScroll = [panGesture locationInView:_scrollView];
-                        
+            
             _sortMovingItem.transform = CGAffineTransformMakeTranslation(offset.x, offset.y);
             [self sortingMoveDidContinueToPoint:locationInScroll];
             
@@ -548,7 +569,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     {
         CGPoint locationInMainView = [_sortingPanGesture locationInView:self];
         CGPoint locationInScroll   = [_sortingPanGesture locationInView:_scrollView];
-
+        
         CGFloat threshhold = _itemSize.height;
         CGPoint offset = _scrollView.contentOffset;
         
@@ -749,7 +770,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
                     if (_sortMovingItem) 
                     {
                         UIView *v = [self cellForItemAtIndex:position];
-                                                
+                        
                         v.tag = _sortFuturePosition + kTagOffset;
                         CGPoint origin = [self.layoutStrategy originForItemAtPosition:_sortFuturePosition];
                         
@@ -858,7 +879,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
                 _lastScale = [_pinchGesture scale];
                 
                 currentScale += scale;
-                                
+                
                 CGFloat alpha = 1 - (kMaxScale - currentScale);
                 alpha = MAX(0, alpha);
                 alpha = MIN(1, alpha);
@@ -923,7 +944,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     if (_inFullSizeMode)
     {        
         _inFullSizeMode = NO;
-               
+        
         CGPoint center = _transformingItem.fullSizeView.center;
         
         [_transformingItem switchToFullSizeMode:NO];
@@ -971,16 +992,16 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
             _lastScale = 1;
             
             [self bringSubviewToFront:_transformingItem];
-        
+            
             CGFloat rotationValue = atan2f(_transformingItem.contentView.transform.b, _transformingItem.contentView.transform.a); 
-
+            
             _transformingItem.contentView.transform = CGAffineTransformIdentity;
-
+            
             [_transformingItem switchToFullSizeMode:YES];
             _transformingItem.backgroundColor = [[UIColor darkGrayColor] colorWithAlphaComponent:0.9];
             
             _transformingItem.fullSizeView.transform =  CGAffineTransformMakeRotation(rotationValue);
-                        
+            
             [UIView animateWithDuration:kDefaultAnimationDuration 
                                   delay:0
                                 options:kDefaultAnimationOptions
@@ -1028,7 +1049,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
                                  transformingView.backgroundColor = [UIColor clearColor];
                              } 
                              completion:^(BOOL finished){
-
+                                 
                                  [transformingView removeFromSuperview];
                                  transformingView.frame = finalFrameInScroll;
                                  transformingView.contentView.frame = transformingView.bounds;
@@ -1038,7 +1059,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
                                  
                                  if ([self.transformDelegate respondsToSelector:@selector(GMGridView:didEndTransformingCell:)])
                                  {
-                                    [self.transformDelegate GMGridView:self didEndTransformingCell:transformingView];
+                                     [self.transformDelegate GMGridView:self didEndTransformingCell:transformingView];
                                  }
                                  
                                  // Transfer the gestures back
@@ -1057,6 +1078,8 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 
 - (void)tapGestureUpdated:(UITapGestureRecognizer *)tapGesture
 {
+    if ([self.inEditingMode boolValue]) return;
+    
     CGPoint locationTouch = [_tapGesture locationInView:_scrollView];
     NSInteger position = [self.layoutStrategy itemPositionFromLocation:locationTouch];
     
@@ -1065,6 +1088,12 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
         [self.actionDelegate GMGridView:self didTapOnItemAtIndex:position];
     }
 }
+
+- (void)tapGestureEndEditingUpdated:(UITapGestureRecognizer *)tapGesture
+{
+    self.editing = NO;
+}
+
 
 //////////////////////////////////////////////////////////////
 #pragma mark private methods
@@ -1171,7 +1200,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     _minPossibleContentOffset = CGPointMake(0, 0);
     _maxPossibleContentOffset = CGPointMake(contentSize.width - _scrollView.bounds.size.width + _scrollView.contentInset.right, 
                                             contentSize.height - _scrollView.bounds.size.height + _scrollView.contentInset.bottom);
-
+    
     [UIView animateWithDuration:kDefaultAnimationDuration 
                           delay:0 
                         options:kDefaultAnimationOptions 
@@ -1229,7 +1258,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     NSRange loadedPositionsRange = NSMakeRange(self.firstPositionLoaded, self.lastPositionLoaded - self.firstPositionLoaded);
     
     BOOL forceLoad = self.firstPositionLoaded == GMGV_INVALID_POSITION || self.lastPositionLoaded == GMGV_INVALID_POSITION;
-
+    
     NSInteger positionToLoad;
     
     for (int i = 0; i < rangeOfPositions.length; i++) 
@@ -1358,7 +1387,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     
     CGPoint newContentOffset = CGPointMake(MIN(_maxPossibleContentOffset.x, previousContentOffset.x), MIN(_maxPossibleContentOffset.y, previousContentOffset.y));
     newContentOffset = CGPointMake(MAX(newContentOffset.x, _minPossibleContentOffset.x), MAX(newContentOffset.y, _minPossibleContentOffset.y));
-                                        
+    
     _scrollView.contentOffset = newContentOffset;
     
     [self loadRequiredItems];
@@ -1402,7 +1431,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 {
     index = MAX(0, index);
     index = MIN(index, _numberTotalItems);
-
+    
     CGPoint origin = [self.layoutStrategy originForItemAtPosition:index];
     CGRect scrollToRect = CGRectMake(origin.x, origin.y, _itemSize.width, _itemSize.height);
     
@@ -1477,7 +1506,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 - (void)removeObjectAtIndex:(NSInteger)index
 {
     NSAssert((index >= 0 && index < _numberTotalItems), @"Invalid index specified");
-
+    
     GMGridViewCell *cell = [self cellForItemAtIndex:index];
     
     for (int i = index + 1; i < _numberTotalItems; i++)
@@ -1495,7 +1524,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
                      animations:^{
                          cell.contentView.alpha = 0.3;
                          cell.alpha = 0;
-
+                         
                          [self scrollToObjectAtIndex:index animated:NO];
                          
                          [self recomputeSize];
@@ -1518,19 +1547,19 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 {
     NSAssert((index1 >= 0 && index1 < _numberTotalItems), @"Invalid index1 specified");
     NSAssert((index2 >= 0 && index2 < _numberTotalItems), @"Invalid index2 specified");
-        
+    
     GMGridViewCell *view1 = [self cellForItemAtIndex:index1];
     GMGridViewCell *view2 = [self cellForItemAtIndex:index2];
     
     view1.tag = index2 + kTagOffset;
     view2.tag = index1 + kTagOffset;
-
+    
     CGPoint view1Origin = [self.layoutStrategy originForItemAtPosition:index2];
     CGPoint view2Origin = [self.layoutStrategy originForItemAtPosition:index1];
     
     view1.frame = CGRectMake(view1Origin.x, view1Origin.y, _itemSize.width, _itemSize.height);
     view2.frame = CGRectMake(view2Origin.x, view2Origin.y, _itemSize.width, _itemSize.height);
-
+    
     
     CGRect visibleRect = CGRectMake(_scrollView.contentOffset.x,
                                     _scrollView.contentOffset.y, 
@@ -1552,7 +1581,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
                          }
                      } 
                      completion:^(BOOL finished){
-
+                         
                      }
      ];
 }
