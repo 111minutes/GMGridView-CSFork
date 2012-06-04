@@ -123,7 +123,7 @@ typedef enum
 @protocol GMGridViewActionDelegate <NSObject>
 
 @required
-- (void)GMGridView:(GMGridView *)gridView didTapOnItemAtIndex:(NSInteger)position;
+- (void)GMGridView:(GMGridView *)gridView didTapOnItemAtIndex:(NSInteger)position location:(CGPoint)location;
 
 @end
 
