@@ -36,8 +36,6 @@
 
 @interface GMGridViewCell (Privates) 
 
-- (void)actionDelete;
-
 @end
 
 //////////////////////////////////////////////////////////////
