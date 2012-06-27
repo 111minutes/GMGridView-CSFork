@@ -1414,19 +1414,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     
     currentView.tag = kTagOffset - 1;
     
-    [UIView animateWithDuration:kDefaultAnimationDuration 
-                          delay:0
-                        options:kDefaultAnimationOptions
-                     animations:^{
-                         [self scrollToObjectAtIndex:index animated:NO];
-                         currentView.alpha = 0;
-                         cell.alpha = 1;
-                     } 
-                     completion:^(BOOL finished){
-                         [currentView removeFromSuperview];
-                     }
-     ];
-    
+    [currentView removeFromSuperview];
     
     [self setSubviewsCacheAsInvalid];
 }
