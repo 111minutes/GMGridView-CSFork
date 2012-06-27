@@ -1414,7 +1414,25 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     
     currentView.tag = kTagOffset - 1;
     
-    [currentView removeFromSuperview];
+    [UIView animateWithDuration:0 
+    	
+                          delay:0
+	  	
+                        options:kDefaultAnimationOptions
+	  	
+                     animations:^{
+	  	
+                         currentView.alpha = 0;
+
+                         cell.alpha = 1;
+
+                     } 
+
+                     completion:^(BOOL finished){
+
+                         [currentView removeFromSuperview];
+}
+];
     
     [self setSubviewsCacheAsInvalid];
 }
