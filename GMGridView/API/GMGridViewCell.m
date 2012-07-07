@@ -165,16 +165,7 @@
 {
     _editing = editing;
     
-    [UIView animateWithDuration:0.2 
-                          delay:0 
-                        options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationCurveEaseOut
-                     animations:^{
-                         self.deleteButton.alpha = editing ? 1 : 0;
-                     } 
-                     completion:nil];
-    
     self.contentView.userInteractionEnabled = !editing;
-    [self shakeStatus:editing];
 }
 
 - (void)setDeleteButtonOffset:(CGPoint)offset
