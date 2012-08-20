@@ -41,7 +41,7 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 #pragma mark - Private interface
 //////////////////////////////////////////////////////////////
 
-@interface GMGridView () <UIGestureRecognizerDelegate, UIScrollViewDelegate>
+@interface GMGridView ()
 {
     // Views
     UIScrollView *_scrollView;
@@ -157,6 +157,12 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 @synthesize firstPositionLoaded = _firstPositionLoaded;
 @synthesize lastPositionLoaded = _lastPositionLoaded;
 @synthesize inEditingMode;
+
+@synthesize sortingPanGesture = _sortingPanGesture, sortingLongPressGesture = _sortingLongPressGesture;
+@synthesize editingModeLongPressGesture = _editingModeLongPressGesture;
+@synthesize pinchGesture = _pinchGesture, tapGesture = _tapGesture, tapGestureEndEditing = _tapGestureEndEditing;
+@synthesize rotationGesture = _rotationGesture, panGesture = _panGesture;
+
 //////////////////////////////////////////////////////////////
 #pragma mark Constructors and destructor
 //////////////////////////////////////////////////////////////

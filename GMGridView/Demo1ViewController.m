@@ -199,7 +199,6 @@
     //NSLog(@"Creating view indx %d", index);
     
     CGSize size = [self sizeForItemsInGMGridView:gridView];
-    
     GMGridViewCell *cell = [gridView dequeueReusableCell];
     
     if (!cell) 
@@ -243,12 +242,10 @@
 #pragma mark GMGridViewActionDelegate
 //////////////////////////////////////////////////////////////
 
-- (void)GMGridView:(GMGridView *)gridView didTapOnItemAtIndex:(NSInteger)position
+- (void)GMGridView:(GMGridView *)gridView didTapOnItemAtIndex:(NSInteger)position location:(CGPoint)location
 {
     NSLog(@"Did tap at index %d", position);
 }
-
-
 
 //////////////////////////////////////////////////////////////
 #pragma mark GMGridViewSortingDelegate

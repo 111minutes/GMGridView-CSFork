@@ -47,7 +47,7 @@ typedef enum
 #pragma mark Interface GMGridView
 //////////////////////////////////////////////////////////////
 
-@interface GMGridView : UIView
+@interface GMGridView : UIView  <UIGestureRecognizerDelegate, UIScrollViewDelegate>
 {
     
 }
@@ -74,6 +74,18 @@ typedef enum
 @property (nonatomic) BOOL showFullSizeViewWithAlphaWhenTransforming; // Default is YES - not working right now
 @property (nonatomic) BOOL showsVerticalScrollIndicator;              // Default is YES
 @property (nonatomic) BOOL showsHorizontalScrollIndicator;            // Default is YES
+
+// Sorting Gestures
+@property (nonatomic, readonly) UIPanGestureRecognizer *sortingPanGesture;
+@property (nonatomic, readonly) UILongPressGestureRecognizer *sortingLongPressGesture;
+@property (nonatomic, readonly) UILongPressGestureRecognizer *editingModeLongPressGesture;
+
+// Moving gestures
+@property (nonatomic, readonly) UIPinchGestureRecognizer *pinchGesture;
+@property (nonatomic, readonly) UITapGestureRecognizer *tapGesture;
+@property (nonatomic, readonly) UITapGestureRecognizer *tapGestureEndEditing;
+@property (nonatomic, readonly) UIRotationGestureRecognizer *rotationGesture;
+@property (nonatomic, readonly) UIPanGestureRecognizer *panGesture;
 
 @property (nonatomic, readonly) UIScrollView *scrollView;             // Messing with the scrollView can lead to unexpected behavior. Avoid changing any properties
 // or changing its delegate. You have been warned.
