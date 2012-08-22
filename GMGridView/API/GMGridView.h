@@ -137,6 +137,9 @@ typedef enum
 @required
 - (void)GMGridView:(GMGridView *)gridView didTapOnItemAtIndex:(NSInteger)position location:(CGPoint)location;
 
+@optional
+- (void)GMGridView:(GMGridView *)gridView didDoubleTapOnItemAtIndex:(NSInteger)position location:(CGPoint)location;
+
 @end
 
 

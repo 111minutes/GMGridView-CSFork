@@ -36,6 +36,8 @@ static const NSUInteger kTagOffset = 50;
 static const CGFloat kDefaultAnimationDuration = 0.3;
 static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction;
 
+static BOOL shouldReceiveSingleTap = NO;
+static BOOL shouldReceiveDoubleTap = NO;
 
 //////////////////////////////////////////////////////////////
 #pragma mark - Private interface
@@ -80,6 +82,8 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     CGFloat _lastScale;
     BOOL _inFullSizeMode;
     BOOL _rotationActive;
+    
+    dispatch_queue_t _touchQueue;
 }
 
 @property (nonatomic, readonly) BOOL itemsSubviewsCacheIsValid;
@@ -176,6 +180,9 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 {
     if ((self = [super initWithFrame:frame])) 
     {
+        
+        _touchQueue = dispatch_queue_create("com.111min.touchqueue", DISPATCH_QUEUE_CONCURRENT);
+        
         _scrollView = [[UIScrollView alloc] initWithFrame:[self bounds]];
         _scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _scrollView.backgroundColor = [UIColor clearColor];
@@ -427,6 +434,24 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
 //////////////////////////////////////////////////////////////
 #pragma mark GestureRecognizer delegate
 //////////////////////////////////////////////////////////////
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    if (gestureRecognizer == self.tapGesture) {
+        
+        if (touch.tapCount == 1) {
+            shouldReceiveSingleTap = YES;
+            shouldReceiveDoubleTap = NO;
+        }
+        
+        if (touch.tapCount == 2) {
+            shouldReceiveSingleTap = NO;
+            shouldReceiveDoubleTap = YES;
+        }
+    }
+    
+    return YES;
+}
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
@@ -1088,13 +1113,36 @@ static const UIViewAnimationOptions kDefaultAnimationOptions = UIViewAnimationOp
     
     CGPoint locationTouch = [_tapGesture locationInView:_scrollView];
     NSInteger position = [self.layoutStrategy itemPositionFromLocation:locationTouch];
+
+    if (position == GMGV_INVALID_POSITION) return;
     
     GMGridViewCell* cell = [self cellForItemAtIndex:position];
     
     CGPoint location = [_tapGesture locationInView:cell];
-    
-    if (position != GMGV_INVALID_POSITION) 
-    {
+
+    if ([self.actionDelegate respondsToSelector:@selector(GMGridView:didDoubleTapOnItemAtIndex:location:)]) {
+        
+        if (!shouldReceiveDoubleTap) {
+            
+            CGFloat delayInSeconds = 0.3;
+            dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+            dispatch_after(popTime, _touchQueue, ^(void) {
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    if (shouldReceiveSingleTap) {
+                        [self.actionDelegate GMGridView:self didTapOnItemAtIndex:position location:location];
+                    }
+                });
+            });
+            
+        } else {
+            
+            [self.actionDelegate GMGridView:self didDoubleTapOnItemAtIndex:position location:location];
+        }
+        
+    } else {
+        
         [self.actionDelegate GMGridView:self didTapOnItemAtIndex:position location:location];
     }
 }

@@ -247,6 +247,11 @@
     NSLog(@"Did tap at index %d", position);
 }
 
+- (void)GMGridView:(GMGridView *)gridView didDoubleTapOnItemAtIndex:(NSInteger)position location:(CGPoint)location
+{
+    NSLog(@"Did double tap at index %d", position);
+}
+
 //////////////////////////////////////////////////////////////
 #pragma mark GMGridViewSortingDelegate
 //////////////////////////////////////////////////////////////
