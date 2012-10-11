@@ -115,13 +115,12 @@ typedef enum
 
 @protocol GMGridViewDataSource <NSObject>
 
-@required
+@optional
 // Populating subview items 
 - (NSInteger)numberOfItemsInGMGridView:(GMGridView *)gridView;
 - (CGSize)sizeForItemsInGMGridView:(GMGridView *)gridView;
 - (GMGridViewCell *)GMGridView:(GMGridView *)gridView cellForItemAtIndex:(NSInteger)index;
 
-@optional
 // Required to enable editing mode
 - (void)GMGridView:(GMGridView *)gridView deleteItemAtIndex:(NSInteger)index;
 
@@ -134,10 +133,8 @@ typedef enum
 
 @protocol GMGridViewActionDelegate <NSObject>
 
-@required
-- (void)GMGridView:(GMGridView *)gridView didTapOnItemAtIndex:(NSInteger)position location:(CGPoint)location;
-
 @optional
+- (void)GMGridView:(GMGridView *)gridView didTapOnItemAtIndex:(NSInteger)position location:(CGPoint)location;
 - (void)GMGridView:(GMGridView *)gridView didDoubleTapOnItemAtIndex:(NSInteger)position location:(CGPoint)location;
 
 @end
@@ -149,12 +146,11 @@ typedef enum
 
 @protocol GMGridViewSortingDelegate <NSObject>
 
-@required
+@optional
 // Item moved - right place to update the data structure
 - (void)GMGridView:(GMGridView *)gridView moveItemAtIndex:(NSInteger)oldIndex toIndex:(NSInteger)newIndex;
 - (void)GMGridView:(GMGridView *)gridView exchangeItemAtIndex:(NSInteger)index1 withItemAtIndex:(NSInteger)index2;
 
-@optional
 // Sorting started/ended - indexes are not specified on purpose (not the right place to update data structure)
 - (void)GMGridView:(GMGridView *)gridView didStartMovingCell:(GMGridViewCell *)cell;
 - (void)GMGridView:(GMGridView *)gridView didEndMovingCell:(GMGridViewCell *)cell;
@@ -169,13 +165,12 @@ typedef enum
 
 @protocol GMGridViewTransformationDelegate <NSObject>
 
-@required
+@optional
 // Fullsize
 - (CGSize)GMGridView:(GMGridView *)gridView sizeInFullSizeForCell:(GMGridViewCell *)cell atIndex:(NSInteger)index;
 - (UIView *)GMGridView:(GMGridView *)gridView fullSizeViewForCell:(GMGridViewCell *)cell atIndex:(NSInteger)index;
 
 // Transformation (pinch, drag, rotate) of the item
-@optional
 - (void)GMGridView:(GMGridView *)gridView didStartTransformingCell:(GMGridViewCell *)cell;
 - (void)GMGridView:(GMGridView *)gridView didEnterFullSizeForCell:(GMGridViewCell *)cell;
 - (void)GMGridView:(GMGridView *)gridView didEndTransformingCell:(GMGridViewCell *)cell;
