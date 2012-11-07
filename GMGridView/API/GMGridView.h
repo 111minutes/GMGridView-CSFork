@@ -121,6 +121,10 @@ typedef enum
 - (CGSize)sizeForItemsInGMGridView:(GMGridView *)gridView;
 - (GMGridViewCell *)GMGridView:(GMGridView *)gridView cellForItemAtIndex:(NSInteger)index;
 
+// Scroll delegate methods
+- (void)GMGridView:(GMGridView *)gridView didScrollToItemAtIndex:(NSInteger)index;
+- (void)GMGridView:(GMGridView *)gridView didScrollToPoint:(CGPoint)point ofWidth:(float)width;
+
 // Required to enable editing mode
 - (void)GMGridView:(GMGridView *)gridView deleteItemAtIndex:(NSInteger)index;
 

@@ -180,9 +180,7 @@ static BOOL shouldReceiveDoubleTap = NO;
 {
     if ((self = [super initWithFrame:frame])) 
     {
-        
         _touchQueue = dispatch_queue_create("com.111min.touchqueue", DISPATCH_QUEUE_CONCURRENT);
-        
         _scrollView = [[UIScrollView alloc] initWithFrame:[self bounds]];
         _scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _scrollView.backgroundColor = [UIColor clearColor];
@@ -428,7 +426,25 @@ static BOOL shouldReceiveDoubleTap = NO;
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
+    CGPoint pointForDelegate = CGPointMake(scrollView.contentOffset.x + self.bounds.size.width/2,
+                                           scrollView.contentSize.height/2);
     [self loadRequiredItems];
+    
+    if ([self.dataSource respondsToSelector:@selector(GMGridView:didScrollToPoint:ofWidth:)]) {
+        [self.dataSource GMGridView:self didScrollToPoint:pointForDelegate ofWidth:self.scrollView.contentSize.width];
+    }
+    
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    CGPoint point = CGPointMake(scrollView.contentOffset.x + self.bounds.size.width/2,
+                                scrollView.contentSize.height/2);
+    NSInteger position = [self.layoutStrategy itemPositionFromLocation:point];
+    
+    if ([self.dataSource respondsToSelector:@selector(GMGridView:didScrollToItemAtIndex:)]) {
+        [self.dataSource GMGridView:self didScrollToItemAtIndex:position];
+    }
 }
 
 //////////////////////////////////////////////////////////////
@@ -466,10 +482,13 @@ static BOOL shouldReceiveDoubleTap = NO;
     if (gestureRecognizer == _tapGesture) 
     {
         CGPoint locationTouch = [_tapGesture locationInView:_scrollView];
+        
         valid = !isScrolling && !self.isEditing && [self.layoutStrategy itemPositionFromLocation:locationTouch] != GMGV_INVALID_POSITION;
     }
     else if (gestureRecognizer == _tapGestureEndEditing) {
+
         CGPoint locationTouch = [_tapGesture locationInView:_scrollView];
+
         valid = !isScrolling && self.isEditing && GMGV_INVALID_POSITION == [self.layoutStrategy itemPositionFromLocation:locationTouch];
     }
     else if (gestureRecognizer == _sortingLongPressGesture)
